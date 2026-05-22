@@ -116,6 +116,7 @@ class alternate {
 
         $confirmurl = self::base_url($course->id, [
             'id' => $email->id, 'action' => self::CONFIRMED,
+            'sesskey' => sesskey(),
         ]);
 
         $cancelurl = self::base_url($course->id);
@@ -131,6 +132,8 @@ class alternate {
      */
     public static function confirmed($course, $id) {
         global $DB;
+
+        require_sesskey();
 
         $DB->delete_records('block_clampmail_alternate', ['id' => $id]);
 

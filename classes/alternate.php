@@ -93,12 +93,16 @@ class alternate {
      * Get a single alternate email for the course.
      *
      * @param int $id the alternate email id
+     * @param int $courseid the course id to verify ownership
      * @return array
      */
-    public static function get_one($id) {
+    public static function get_one($id, $courseid = null) {
         global $DB;
 
         $params = ['id' => $id];
+        if ($courseid) {
+            $params['courseid'] = $courseid;
+        }
         return $DB->get_record('block_clampmail_alternate', $params, '*', MUST_EXIST);
     }
 
@@ -112,10 +116,12 @@ class alternate {
     public static function delete($course, $id) {
         global $OUTPUT;
 
-        $email = self::get_one($id);
+        $email = self::get_one($id, $course->id);
 
         $confirmurl = self::base_url($course->id, [
-            'id' => $email->id, 'action' => self::CONFIRMED,
+            'id' => $email->id,
+            'action' => self::CONFIRMED,
+            'sesskey' => sesskey(),
         ]);
 
         $cancelurl = self::base_url($course->id);
@@ -132,7 +138,9 @@ class alternate {
     public static function confirmed($course, $id) {
         global $DB;
 
-        $DB->delete_records('block_clampmail_alternate', ['id' => $id]);
+        require_sesskey();
+
+        $DB->delete_records('block_clampmail_alternate', ['id' => $id, 'courseid' => $course->id]);
 
         return redirect(self::base_url($course->id, ['flash' => 1]));
     }
@@ -147,7 +155,7 @@ class alternate {
     public static function verify($course, $id) {
         global $DB, $OUTPUT;
 
-        $entry = self::get_one($id);
+        $entry = self::get_one($id, $course->id);
 
         $value = optional_param('key', null, PARAM_TEXT);
         $userid = optional_param('activator', null, PARAM_INT);
@@ -203,7 +211,7 @@ class alternate {
     public static function inform($course, $id) {
         global $OUTPUT, $USER;
 
-        $entry = self::get_one($id);
+        $entry = self::get_one($id, $course->id);
 
         // No restriction.
         // Valid forever.
@@ -288,7 +296,7 @@ class alternate {
             } else if (!empty($data->id)) {
                 // Changed address?
                 if ($data->valid) {
-                    $older = self::get_one($id);
+                    $older = self::get_one($id, $course->id);
 
                     $valid = $older->address != $data->address ? 0 : 1;
 
@@ -309,7 +317,7 @@ class alternate {
         }
 
         if ($id) {
-            $form->set_data(self::get_one($id));
+            $form->set_data(self::get_one($id, $course->id));
         }
 
         return $form->render();

@@ -38,9 +38,10 @@ class email {
      * @param string $table the name of the table
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $userid the id for the user
      * @return boolean
      */
-    public static function cleanup($table, $contextid, $itemid) {
+    public static function cleanup($table, $contextid, $itemid, $userid) {
         global $DB;
 
         // Clean up the files associated with this email
@@ -65,7 +66,7 @@ class email {
             $itemid
         );
 
-        return $DB->delete_records($table, ['id' => $itemid]);
+        return $DB->delete_records($table, ['id' => $itemid, 'userid' => $userid]);
     }
 
     /**
@@ -75,10 +76,11 @@ class email {
      *
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $userid the id for the user
      * @return boolean
      */
-    public static function history_cleanup($contextid, $itemid) {
-        return self::cleanup('block_clampmail_log', $contextid, $itemid);
+    public static function history_cleanup($contextid, $itemid, $userid) {
+        return self::cleanup('block_clampmail_log', $contextid, $itemid, $userid);
     }
 
     /**
@@ -88,10 +90,11 @@ class email {
      *
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $userid the id for the user
      * @return boolean
      */
-    public static function draft_cleanup($contextid, $itemid) {
-        return self::cleanup('block_clampmail_drafts', $contextid, $itemid);
+    public static function draft_cleanup($contextid, $itemid, $userid) {
+        return self::cleanup('block_clampmail_drafts', $contextid, $itemid, $userid);
     }
 
     /**
@@ -221,12 +224,13 @@ class email {
      * @param int $courseid the course
      * @param string $type log or drafts
      * @param int $typeid the id of the email or draft
+     * @param int $userid the id of the user
      * @return string
      */
-    public static function delete_dialog($courseid, $type, $typeid) {
+    public static function delete_dialog($courseid, $type, $typeid, $userid) {
         global $DB, $OUTPUT;
 
-        $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid]);
+        $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid, 'userid' => $userid]);
 
         if (empty($email)) {
             print_error('not_valid_typeid', 'block_clampmail', '', $typeid);

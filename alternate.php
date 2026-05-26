@@ -60,6 +60,10 @@ if (!method_exists('block_clampmail\alternate', $action)) {
     $action = 'view';
 }
 
+if (in_array($action, ['delete', 'confirmed', 'inform'])) {
+    require_sesskey();
+}
+
 $body = block_clampmail\alternate::$action($course, $id);
 
 echo $OUTPUT->header();

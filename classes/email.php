@@ -38,10 +38,14 @@ class email {
      * @param string $table the name of the table
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $userid the user id
      * @return boolean
      */
-    public static function cleanup($table, $contextid, $itemid) {
+    public static function cleanup($table, $contextid, $itemid, $userid) {
         global $DB;
+
+        $context = \context::instance_by_id($contextid);
+        $courseid = $context->get_course_context()->instanceid;
 
         // Clean up the files associated with this email
         // Fortunately, they are only db references, but
@@ -65,7 +69,7 @@ class email {
             $itemid
         );
 
-        return $DB->delete_records($table, ['id' => $itemid]);
+        return $DB->delete_records($table, ['id' => $itemid, 'userid' => $userid, 'courseid' => $courseid]);
     }
 
     /**
@@ -75,10 +79,11 @@ class email {
      *
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $userid the user id
      * @return boolean
      */
-    public static function history_cleanup($contextid, $itemid) {
-        return self::cleanup('block_clampmail_log', $contextid, $itemid);
+    public static function history_cleanup($contextid, $itemid, $userid) {
+        return self::cleanup('block_clampmail_log', $contextid, $itemid, $userid);
     }
 
     /**
@@ -88,10 +93,11 @@ class email {
      *
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $userid the user id
      * @return boolean
      */
-    public static function draft_cleanup($contextid, $itemid) {
-        return self::cleanup('block_clampmail_drafts', $contextid, $itemid);
+    public static function draft_cleanup($contextid, $itemid, $userid) {
+        return self::cleanup('block_clampmail_drafts', $contextid, $itemid, $userid);
     }
 
     /**

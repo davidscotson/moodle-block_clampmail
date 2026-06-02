@@ -92,30 +92,32 @@ class alternate {
     /**
      * Get a single alternate email for the course.
      *
+     * @param int $courseid the course id
      * @param int $id the alternate email id
-     * @return array
+     * @return \stdClass
      */
-    public static function get_one($id) {
+    public static function get_one($courseid, $id) {
         global $DB;
 
-        $params = ['id' => $id];
+        $params = ['id' => $id, 'courseid' => $courseid];
         return $DB->get_record('block_clampmail_alternate', $params, '*', MUST_EXIST);
     }
 
     /**
      * Creates a dialog box for deleting an alternate email.
      *
-     * @param stdClass $course the course object
+     * @param \stdClass $course the course object
      * @param int $id the alternate email to delete
      * @return string
      */
     public static function delete($course, $id) {
         global $OUTPUT;
 
-        $email = self::get_one($id);
+        $email = self::get_one($course->id, $id);
 
         $confirmurl = self::base_url($course->id, [
             'id' => $email->id, 'action' => self::CONFIRMED,
+            'sesskey' => sesskey(),
         ]);
 
         $cancelurl = self::base_url($course->id);
@@ -126,13 +128,15 @@ class alternate {
     /**
      * Deletes an alternate email from a course.
      *
-     * @param stdClass $course the course object
+     * @param \stdClass $course the course object
      * @param int $id the alternate email to delete
      */
     public static function confirmed($course, $id) {
         global $DB;
 
-        $DB->delete_records('block_clampmail_alternate', ['id' => $id]);
+        require_sesskey();
+
+        $DB->delete_records('block_clampmail_alternate', ['id' => $id, 'courseid' => $course->id]);
 
         return redirect(self::base_url($course->id, ['flash' => 1]));
     }
@@ -140,14 +144,14 @@ class alternate {
     /**
      * Generate the alternate email verification dialog.
      *
-     * @param stdClass $course the course
+     * @param \stdClass $course the course
      * @param int $id the alternate email id
      * @return string
      */
     public static function verify($course, $id) {
         global $DB, $OUTPUT;
 
-        $entry = self::get_one($id);
+        $entry = self::get_one($course->id, $id);
 
         $value = optional_param('key', null, PARAM_TEXT);
         $userid = optional_param('activator', null, PARAM_INT);
@@ -170,6 +174,7 @@ class alternate {
         if (empty($value) || !$DB->get_record('user_private_key', $params)) {
             $reactivate = self::base_url($course->id, [
                 'id' => $id, 'action' => self::INFORMATION,
+                'sesskey' => sesskey(),
             ]);
 
             $html = $OUTPUT->notification(get_string('alternate_invalid', 'block_clampmail', $entry));
@@ -196,14 +201,16 @@ class alternate {
      *
      * Add the alternate email and notify the user. Creates a dialog box.
      *
-     * @param stdClass $course the course
+     * @param \stdClass $course the course
      * @param int $id the alternate email id
      * @return string
      */
     public static function inform($course, $id) {
         global $OUTPUT, $USER;
 
-        $entry = self::get_one($id);
+        require_sesskey();
+
+        $entry = self::get_one($course->id, $id);
 
         // No restriction.
         // Valid forever.
@@ -277,6 +284,9 @@ class alternate {
         } else if ($data = $form->get_data()) {
             global $DB;
 
+            // Enforce course context.
+            $data->courseid = $course->id;
+
             // Check if email exists in this course.
             $older = $DB->get_record('block_clampmail_alternate', [
                 'address' => $data->address, 'courseid' => $data->courseid,
@@ -286,9 +296,12 @@ class alternate {
                 $data->id = $older->id;
                 $data->valid = $older->valid;
             } else if (!empty($data->id)) {
+                // Verify ownership.
+                self::get_one($course->id, $data->id);
+
                 // Changed address?
                 if ($data->valid) {
-                    $older = self::get_one($id);
+                    $older = self::get_one($course->id, $id);
 
                     $valid = $older->address != $data->address ? 0 : 1;
 
@@ -309,7 +322,7 @@ class alternate {
         }
 
         if ($id) {
-            $form->set_data(self::get_one($id));
+            $form->set_data(self::get_one($course->id, $id));
         }
 
         return $form->render();

@@ -60,6 +60,20 @@ if (!method_exists('block_clampmail\alternate', $action)) {
     $action = 'view';
 }
 
+// These actions are state-changing and require a session key.
+$statechanging = [
+    block_clampmail\alternate::CONFIRMED,
+    block_clampmail\alternate::INFORMATION,
+    block_clampmail\alternate::INTERACT,
+];
+
+if (in_array($action, $statechanging)) {
+    // For INTERACT, only require sesskey if data was submitted.
+    if ($action != block_clampmail\alternate::INTERACT || data_submitted()) {
+        require_sesskey();
+    }
+}
+
 $body = block_clampmail\alternate::$action($course, $id);
 
 echo $OUTPUT->header();

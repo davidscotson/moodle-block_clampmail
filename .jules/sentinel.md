@@ -1,0 +1,4 @@
+## 2024-05-15 - [IDOR and CSRF Hardening in Alternate Email Management]
+**Vulnerability:** Insecure Direct Object Reference (IDOR) and Cross-Site Request Forgery (CSRF) in alternate email management actions. Records could be accessed or modified by only providing an ID without verifying the course context, and state-changing actions lacked session key verification.
+**Learning:** Moodle's `get_record` and `delete_records` should always include a context-verifying field (like `courseid`) in addition to the primary `id` to prevent IDOR. Dynamic method calls for actions should be whitelisted to prevent unauthorized execution of arbitrary class methods.
+**Prevention:** Always scope database operations with a verified context ID. Use `require_sesskey()` for all state-changing actions and include `sesskey()` in confirmation URLs. Use strict whitelists for dynamic action dispatching.

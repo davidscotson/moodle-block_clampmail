@@ -25,8 +25,8 @@
 require_once('../../config.php');
 
 $courseid = required_param('courseid', PARAM_INT);
-$action = optional_param('action', 'view', PARAM_TEXT);
-$id = optional_param('id', null, PARAM_INT);
+$action = optional_param('action', 'view', PARAM_ALPHA);
+$id = optional_param('id', 0, PARAM_INT);
 $flash = optional_param('flash', 0, PARAM_INT);
 
 $course = $DB->get_record('course', ['id' => $courseid], '*', MUST_EXIST);
@@ -55,9 +55,24 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->set_pagetype('CLAMPMail');
 
-if (!method_exists('block_clampmail\alternate', $action)) {
+// Whitelist valid actions.
+$validactions = [
+    block_clampmail\alternate::VIEW,
+    block_clampmail\alternate::DELETE,
+    block_clampmail\alternate::INTERACT,
+    block_clampmail\alternate::CONFIRMED,
+    block_clampmail\alternate::INFORMATION,
+    block_clampmail\alternate::VERIFY,
+];
+
+if (!in_array($action, $validactions) || !method_exists('block_clampmail\alternate', $action)) {
     // Always fallback on view.
     $action = 'view';
+}
+
+// Require sesskey for state-changing actions.
+if (in_array($action, [block_clampmail\alternate::CONFIRMED, block_clampmail\alternate::INFORMATION])) {
+    require_sesskey();
 }
 
 $body = block_clampmail\alternate::$action($course, $id);

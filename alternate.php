@@ -25,7 +25,7 @@
 require_once('../../config.php');
 
 $courseid = required_param('courseid', PARAM_INT);
-$action = optional_param('action', 'view', PARAM_TEXT);
+$action = optional_param('action', 'view', PARAM_ALPHA);
 $id = optional_param('id', null, PARAM_INT);
 $flash = optional_param('flash', 0, PARAM_INT);
 
@@ -55,9 +55,22 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->set_pagetype('CLAMPMail');
 
-if (!method_exists('block_clampmail\alternate', $action)) {
+$allowed = [
+    block_clampmail\alternate::VIEW,
+    block_clampmail\alternate::DELETE,
+    block_clampmail\alternate::INTERACT,
+    block_clampmail\alternate::CONFIRMED,
+    block_clampmail\alternate::INFORMATION,
+    block_clampmail\alternate::VERIFY,
+];
+
+if (!in_array($action, $allowed)) {
     // Always fallback on view.
-    $action = 'view';
+    $action = block_clampmail\alternate::VIEW;
+}
+
+if ($action === block_clampmail\alternate::CONFIRMED || $action === block_clampmail\alternate::INFORMATION) {
+    require_sesskey();
 }
 
 $body = block_clampmail\alternate::$action($course, $id);

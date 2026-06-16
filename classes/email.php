@@ -38,9 +38,10 @@ class email {
      * @param string $table the name of the table
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $courseid optional course id for scoping deletion
      * @return boolean
      */
-    public static function cleanup($table, $contextid, $itemid) {
+    public static function cleanup($table, $contextid, $itemid, $courseid = null) {
         global $DB;
 
         // Clean up the files associated with this email
@@ -65,7 +66,12 @@ class email {
             $itemid
         );
 
-        return $DB->delete_records($table, ['id' => $itemid]);
+        $params = ['id' => $itemid];
+        if ($courseid) {
+            $params['courseid'] = $courseid;
+        }
+
+        return $DB->delete_records($table, $params);
     }
 
     /**

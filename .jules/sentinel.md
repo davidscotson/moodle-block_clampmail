@@ -1,0 +1,4 @@
+## 2025-05-14 - [Insecure Dynamic Method Dispatch and IDOR in Alternate Emails]
+**Vulnerability:** The `alternate.php` entry point allowed arbitrary method execution on the `block_clampmail\alternate` class via the `action` parameter, and records were retrieved/deleted by ID without course context scoping (IDOR).
+**Learning:** Using `method_exists` with user-supplied input is unsafe for dispatching actions. Combined with lack of CSRF protection on state-changing actions and missing context scoping in database queries, it created multiple high-risk vectors.
+**Prevention:** Always use an explicit whitelist for action dispatching, enforce `require_sesskey()` for any state-changing action, and always include context IDs (like `courseid`) in `$DB` queries to ensure users cannot access or modify data outside their authorized context.

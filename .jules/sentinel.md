@@ -1,0 +1,4 @@
+## 2025-01-24 - Securing Alternate Email Management
+**Vulnerability:** Insecure Direct Object Reference (IDOR), Cross-Site Request Forgery (CSRF), and Dynamic Method Execution.
+**Learning:** In Moodle plugins, methods like `get_one` that fetch records by ID must always include a context ID (like `courseid`) in the query to prevent users from accessing or modifying records in other courses. State-changing actions (deletion, notification triggers) must be protected by `require_sesskey()` and have the `sesskey` passed in the referring URL/form. Dynamic method calls from URL parameters must be whitelisted against allowed constants/values.
+**Prevention:** Always scope database operations with a verified context ID. Use `require_sesskey()` for any logic that modifies state. Validate dynamic `action` parameters against a strict whitelist.

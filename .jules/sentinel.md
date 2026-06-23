@@ -1,0 +1,4 @@
+## 2026-06-23 - IDOR mitigation via multi-parameter scoping in block_clampmail
+**Vulnerability:** Insecure Direct Object Reference (IDOR) was possible in multiple entry points (alternate.php, emaillog.php) because database deletions and lookups were performed using only the record's primary 'id' without verifying it belonged to the current 'courseid'.
+**Learning:** Even with 'require_login()' and capability checks, a malicious user could manipulate the 'id' parameter to delete or view records from other courses they were not enrolled in, if those records shared the same database table.
+**Prevention:** Always scope database operations like '$DB->get_record' and '$DB->delete_records' with both the record 'id' and a context ID (e.g., 'courseid' or 'userid') that has been verified against the current session.

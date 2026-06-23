@@ -257,7 +257,7 @@ if ($form->is_cancelled()) {
         // Send emails.
         if (isset($data->send)) {
             if ($type == 'drafts') {
-                block_clampmail\email::draft_cleanup($context->id, $typeid);
+                block_clampmail\email::draft_cleanup($context->id, $typeid, $courseid);
             }
 
             [$filename, $file, $actualfile] = block_clampmail\email::process_attachments(

@@ -1,0 +1,4 @@
+## 2025-05-14 - IDOR and CSRF in CLAMPMail
+**Vulnerability:** Insecure Direct Object Reference (IDOR) and Cross-Site Request Forgery (CSRF) across multiple entry points.
+**Learning:** Several entry points (alternate.php, email.php, emaillog.php) were performing database operations (GET, DELETE, UPDATE) using only a primary record ID without verifying that the record belonged to the current course or user. Additionally, state-changing actions like sending verification emails or deleting records lacked CSRF protection.
+**Prevention:** Always include `courseid` and `userid` in database query parameters when fetching or modifying records. Use `MUST_EXIST` to fail securely. Enforce `require_sesskey()` for all state-changing actions and ensure referring links/forms include the `sesskey` parameter. Use explicit allow-lists for dynamic action or table parameters.

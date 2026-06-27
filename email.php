@@ -125,7 +125,18 @@ if ($groupmode == SEPARATEGROUPS && !has_capability('block/clampmail:cansendtoal
 }
 
 if (!empty($type)) {
-    $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid]);
+    if (!in_array($type, ['log', 'drafts'])) {
+        print_error('not_valid', 'block_clampmail', '', $type);
+    }
+
+    $params = ['id' => $typeid, 'courseid' => $course->id];
+
+    // Ensure users can only see their own emails, unless they can impersonate.
+    if (!has_capability('block/clampmail:canimpersonate', $context)) {
+        $params['userid'] = $USER->id;
+    }
+
+    $email = $DB->get_record('block_clampmail_' . $type, $params, '*', MUST_EXIST);
     $email->messageformat = $email->format;
 } else {
     $email = new stdClass();
@@ -257,7 +268,7 @@ if ($form->is_cancelled()) {
         // Send emails.
         if (isset($data->send)) {
             if ($type == 'drafts') {
-                block_clampmail\email::draft_cleanup($context->id, $typeid);
+                block_clampmail\email::draft_cleanup($context->id, $typeid, $course->id);
             }
 
             [$filename, $file, $actualfile] = block_clampmail\email::process_attachments(

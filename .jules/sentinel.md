@@ -1,0 +1,4 @@
+## 2025-05-14 - IDOR and CSRF in dynamic method dispatch
+**Vulnerability:** Insecure Direct Object Reference (IDOR) due to missing course-level scoping in database lookups, and Cross-Site Request Forgery (CSRF) in state-changing actions triggered by dynamic method calls.
+**Learning:** Dynamic dispatching of class methods from a controller (e.g., `block_clampmail\alternate::$action`) bypasses standard form-based CSRF protection. Methods reached this way must explicitly call `require_sesskey()` if they perform state changes.
+**Prevention:** Always scope database operations (SELECT, UPDATE, DELETE) with both the record ID and a context ID (like `courseid`). Whitelist allowed actions for dynamic dispatch and ensure all state-changing actions are protected by `require_sesskey()` and session-keyed links.

@@ -55,9 +55,18 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->set_pagetype('CLAMPMail');
 
-if (!method_exists('block_clampmail\alternate', $action)) {
+$validactions = [
+    block_clampmail\alternate::VIEW,
+    block_clampmail\alternate::DELETE,
+    block_clampmail\alternate::INTERACT,
+    block_clampmail\alternate::CONFIRMED,
+    block_clampmail\alternate::INFORMATION,
+    block_clampmail\alternate::VERIFY,
+];
+
+if (!in_array($action, $validactions) || !method_exists('block_clampmail\alternate', $action)) {
     // Always fallback on view.
-    $action = 'view';
+    $action = block_clampmail\alternate::VIEW;
 }
 
 $body = block_clampmail\alternate::$action($course, $id);

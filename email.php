@@ -125,7 +125,11 @@ if ($groupmode == SEPARATEGROUPS && !has_capability('block/clampmail:cansendtoal
 }
 
 if (!empty($type)) {
-    $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid]);
+    $email = $DB->get_record('block_clampmail_' . $type, [
+        'id' => $typeid,
+        'courseid' => $courseid,
+        'userid' => $USER->id,
+    ], '*', MUST_EXIST);
     $email->messageformat = $email->format;
 } else {
     $email = new stdClass();
@@ -257,7 +261,7 @@ if ($form->is_cancelled()) {
         // Send emails.
         if (isset($data->send)) {
             if ($type == 'drafts') {
-                block_clampmail\email::draft_cleanup($context->id, $typeid);
+                block_clampmail\email::draft_cleanup($context->id, $typeid, $courseid, $USER->id);
             }
 
             [$filename, $file, $actualfile] = block_clampmail\email::process_attachments(

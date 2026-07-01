@@ -55,9 +55,22 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->set_pagetype('CLAMPMail');
 
-if (!method_exists('block_clampmail\alternate', $action)) {
-    // Always fallback on view.
-    $action = 'view';
+$validactions = [
+    block_clampmail\alternate::VIEW,
+    block_clampmail\alternate::DELETE,
+    block_clampmail\alternate::INTERACT,
+    block_clampmail\alternate::CONFIRMED,
+    block_clampmail\alternate::INFORMATION,
+    block_clampmail\alternate::VERIFY,
+];
+
+if (!in_array($action, $validactions)) {
+    $action = block_clampmail\alternate::VIEW;
+}
+
+// CSRF protection for state-changing actions.
+if (in_array($action, [block_clampmail\alternate::CONFIRMED, block_clampmail\alternate::INFORMATION])) {
+    require_sesskey();
 }
 
 $body = block_clampmail\alternate::$action($course, $id);

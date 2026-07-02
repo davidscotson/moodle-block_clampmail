@@ -38,9 +38,11 @@ class email {
      * @param string $table the name of the table
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $courseid the id for the course
+     * @param int $userid the id for the user
      * @return boolean
      */
-    public static function cleanup($table, $contextid, $itemid) {
+    public static function cleanup($table, $contextid, $itemid, $courseid, $userid) {
         global $DB;
 
         // Clean up the files associated with this email
@@ -65,7 +67,7 @@ class email {
             $itemid
         );
 
-        return $DB->delete_records($table, ['id' => $itemid]);
+        return $DB->delete_records($table, ['id' => $itemid, 'courseid' => $courseid, 'userid' => $userid]);
     }
 
     /**
@@ -75,10 +77,12 @@ class email {
      *
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $courseid the id for the course
+     * @param int $userid the id for the user
      * @return boolean
      */
-    public static function history_cleanup($contextid, $itemid) {
-        return self::cleanup('block_clampmail_log', $contextid, $itemid);
+    public static function history_cleanup($contextid, $itemid, $courseid, $userid) {
+        return self::cleanup('block_clampmail_log', $contextid, $itemid, $courseid, $userid);
     }
 
     /**
@@ -88,10 +92,12 @@ class email {
      *
      * @param int $contextid the contextid for the course
      * @param int $itemid the id for the email
+     * @param int $courseid the id for the course
+     * @param int $userid the id for the user
      * @return boolean
      */
-    public static function draft_cleanup($contextid, $itemid) {
-        return self::cleanup('block_clampmail_drafts', $contextid, $itemid);
+    public static function draft_cleanup($contextid, $itemid, $courseid, $userid) {
+        return self::cleanup('block_clampmail_drafts', $contextid, $itemid, $courseid, $userid);
     }
 
     /**
@@ -224,16 +230,16 @@ class email {
      * @return string
      */
     public static function delete_dialog($courseid, $type, $typeid) {
-        global $DB, $OUTPUT;
+        global $DB, $OUTPUT, $USER;
 
-        $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid]);
-
-        if (empty($email)) {
-            print_error('not_valid_typeid', 'block_clampmail', '', $typeid);
-        }
+        $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid, 'userid' => $USER->id, 'courseid' => $courseid], '*', MUST_EXIST);
 
         $params = ['courseid' => $courseid, 'type' => $type];
-        $yesparams = $params + ['typeid' => $typeid, 'action' => 'confirm'];
+        $yesparams = $params + [
+            'typeid' => $typeid,
+            'action' => 'confirm',
+            'sesskey' => sesskey(),
+        ];
 
         $optionyes = new \moodle_url('/blocks/clampmail/emaillog.php', $yesparams);
         $optionno = new \moodle_url('/blocks/clampmail/emaillog.php', $params);

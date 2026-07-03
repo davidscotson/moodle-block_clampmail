@@ -1,0 +1,4 @@
+## 2025-05-15 - CSRF and IDOR Protection in Moodle Plugins
+**Vulnerability:** Insecure Direct Object Reference (IDOR) and Cross-Site Request Forgery (CSRF) in alternate email management.
+**Learning:** In Moodle, it is critical to scope all database lookups for user-provided IDs to the current context (e.g., `courseid`) to prevent IDOR. Additionally, state-changing actions triggered via URLs or custom forms must explicitly verify the Moodle session key using `require_sesskey()` and include the `sesskey` parameter in referring links.
+**Prevention:** Always include context IDs (like `courseid`) in `$DB` record lookups and deletions. Use `require_sesskey()` at the start of any logic that modifies the database or triggers external actions like sending emails. Use explicit whitelists for action dispatching instead of `method_exists`.

@@ -1,0 +1,4 @@
+## 2025-05-14 - [IDOR and CSRF in Alternate Email Management]
+**Vulnerability:** Insecure Direct Object Reference (IDOR) and missing Cross-Site Request Forgery (CSRF) protection in the `alternate.php` management page.
+**Learning:** Moodle entry points that use dynamic method calls based on an `action` parameter are highly susceptible to action hijacking if not properly whitelisted. State-changing actions triggered via direct URLs must explicitly call `require_sesskey()` and include the `sesskey` in referring URLs. IDOR protection requires scoping database operations with a verified context ID (like `courseid`) rather than relying solely on the object's primary ID.
+**Prevention:** Use `PARAM_ALPHA` for action parameters and validate them against an explicit whitelist. Always include context IDs in database queries and delete operations. Ensure all state-changing actions are protected by session keys.

@@ -1,0 +1,4 @@
+## 2025-05-15 - Hardening Alternate Email Management
+**Vulnerability:** Multiple vulnerabilities including CSRF in state-changing actions (`confirmed`, `inform`), IDOR in record retrieval and deletion, and insecure dynamic method invocation in `alternate.php`.
+**Learning:** In Moodle plugins, relying on `method_exists()` for dynamic dispatching is insufficient as it doesn't distinguish between safe 'view' methods and sensitive 'action' methods. Furthermore, IDOR protection requires consistently scoping `$DB` operations with a context-verified `courseid`.
+**Prevention:** Always use an explicit whitelist for dynamic method calls and enforce `require_sesskey()` for all state-changing actions. Ensure all record lookups and deletions include a context ID (like `courseid`) to prevent cross-context data manipulation.

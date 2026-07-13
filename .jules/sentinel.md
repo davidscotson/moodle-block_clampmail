@@ -1,0 +1,4 @@
+## 2026-07-13 - Securing Dynamic Method Dispatch and IDOR in Moodle
+**Vulnerability:** Insecure Direct Object Reference (IDOR) and potential arbitrary method execution via dynamic dispatch.
+**Learning:** Using optional_param('action', ..., PARAM_TEXT) followed by a direct method call like `$class::$action()` is highly dangerous without a strict whitelist, even with `method_exists` checks, as it may expose internal methods. Additionally, lookups by ID alone (e.g., `$DB->get_record('table', ['id' => $id])`) allow users to access/modify records in other contexts (courses) by guessing IDs.
+**Prevention:** 1) Always whitelist allowed actions against a known set of constants. 2) Use PARAM_ALPHA for action parameters. 3) Enforce session key validation for any state-changing action. 4) Always include a context-verifying ID (like courseid or userid) in every database lookup and deletion.

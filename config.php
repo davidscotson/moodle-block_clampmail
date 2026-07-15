@@ -54,6 +54,7 @@ $PAGE->set_pagelayout('standard');
 $changed = false;
 
 if ($reset) {
+    require_sesskey();
     $changed = true;
     block_clampmail\config::reset_course_configuration($courseid);
 }

@@ -68,6 +68,9 @@ if (empty($signatureid)) {
     $signature = new stdClass();
     $signature->signature = '';
 } else {
+    if (!isset($signatures[$signatureid])) {
+        print_error('not_valid_signature', 'block_clampmail');
+    }
     $signature = $signatures[$signatureid];
 }
 $signature->signatureformat = $USER->mailformat;
@@ -133,6 +136,10 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            // Verify ownership of the record we are updating to prevent IDOR parameter tampering.
+            if (!$DB->record_exists('block_clampmail_signatures', ['id' => $fromform->id, 'userid' => $USER->id])) {
+                print_error('not_valid_signature', 'block_clampmail');
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 

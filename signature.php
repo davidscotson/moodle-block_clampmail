@@ -44,6 +44,14 @@ $PAGE->set_pagelayout('report');
 $coursecontext = context_course::instance($course->id);
 require_capability('block/clampmail:cansend', $coursecontext);
 
+// Get all the signatures.
+$signatures = block_clampmail\signature::get_signatures($USER->id);
+
+// Check ownership on loading to prevent IDOR.
+if (!empty($signatureid) && !array_key_exists($signatureid, $signatures)) {
+    print_error('no_permission', 'block_clampmail');
+}
+
 // Delete signature if requested.
 if ($confirm) {
     require_sesskey();
@@ -51,8 +59,6 @@ if ($confirm) {
     redirect(new moodle_url('/blocks/clampmail/signature.php', ['courseid' => $courseid, 'updated' => 1]));
 }
 
-// Get all the signatures.
-$signatures = block_clampmail\signature::get_signatures($USER->id);
 $signatureoptions = [0 => get_string('newsignature', 'block_clampmail')];
 foreach ($signatures as $sigid => $sig) {
     $signatureoptions[$sigid] = $sig->title;
@@ -109,6 +115,10 @@ if ($mform->is_cancelled()) {
     redirect(new moodle_url('/blocks/clampmail/email.php', ['courseid' => $courseid]));
 } else if ($fromform = $mform->get_data()) {
     if (!empty($fromform->delete)) {
+        // Check ownership on deletion confirmation to prevent IDOR.
+        if (!empty($fromform->id) && !array_key_exists($fromform->id, $signatures)) {
+            print_error('no_permission', 'block_clampmail');
+        }
         $delete = true;
     } else {
         $fromform->signature = $fromform->signature_editor['text'];
@@ -133,6 +143,10 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            // Check ownership on saving/updating to prevent IDOR.
+            if (!array_key_exists($fromform->id, $signatures)) {
+                print_error('no_permission', 'block_clampmail');
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 

@@ -25,7 +25,7 @@
 require_once('../../config.php');
 
 $courseid = required_param('courseid', PARAM_INT);
-$action = optional_param('action', 'view', PARAM_TEXT);
+$action = optional_param('action', 'view', PARAM_ALPHA);
 $id = optional_param('id', null, PARAM_INT);
 $flash = optional_param('flash', 0, PARAM_INT);
 

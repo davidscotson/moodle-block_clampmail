@@ -53,6 +53,10 @@ if ($confirm) {
 
 // Get all the signatures.
 $signatures = block_clampmail\signature::get_signatures($USER->id);
+if ($signatureid && !array_key_exists($signatureid, $signatures)) {
+    print_error('not_valid_signature', 'block_clampmail');
+}
+
 $signatureoptions = [0 => get_string('newsignature', 'block_clampmail')];
 foreach ($signatures as $sigid => $sig) {
     $signatureoptions[$sigid] = $sig->title;
@@ -108,6 +112,9 @@ $mform->set_data($signature);
 if ($mform->is_cancelled()) {
     redirect(new moodle_url('/blocks/clampmail/email.php', ['courseid' => $courseid]));
 } else if ($fromform = $mform->get_data()) {
+    if (!empty($fromform->id) && !array_key_exists($fromform->id, $signatures)) {
+        print_error('not_valid_signature', 'block_clampmail');
+    }
     if (!empty($fromform->delete)) {
         $delete = true;
     } else {
@@ -163,6 +170,7 @@ if (!empty($delete) && !empty($fromform->id)) {
             'id' => $signature->id,
             'courseid' => $courseid,
             'confirm' => 1,
+            'sesskey' => sesskey(),
         ]),
         new moodle_url('signature.php', [
             'id' => $signature->id,

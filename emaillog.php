@@ -78,6 +78,11 @@ $PAGE->set_pagelayout('standard');
 
 $dbtable = 'block_clampmail_' . $type;
 
+if (isset($action)) {
+    // Unconditionally retrieve and validate the record to prevent IDOR / access bypass.
+    $DB->get_record($dbtable, ['id' => $typeid, 'userid' => $userid, 'courseid' => $courseid], '*', MUST_EXIST);
+}
+
 $params = ['userid' => $userid, 'courseid' => $courseid];
 $count = $DB->count_records($dbtable, $params);
 

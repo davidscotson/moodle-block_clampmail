@@ -1,0 +1,6 @@
+# Sentinel Security Journal
+
+## 2026-03-31 - CSRF and IDOR Mitigation in Course Alternate Emails
+**Vulnerability:** In CLAMPMail's alternate email feature (`alternate.php`), state-changing actions (such as deletion confirmation and email notification sending) did not enforce CSRF protection (`require_sesskey()`), nor did they validate course context (`courseid` / record ownership checks) in the database queries (IDOR). This allowed any authorized user in any course to view, edit, or delete alternate emails belonging to other courses, as well as trigger arbitrary mail sending via CSRF.
+**Learning:** Legacy PHP files in Moodle that dynamically call static methods or handle custom actions from query parameters are highly prone to IDOR and CSRF if standard forms are bypassed. Database lookup methods (e.g., `get_one`) must strictly enforce course-context boundaries by requiring a `$courseid` alongside the record `id`.
+**Prevention:** Always restrict action parameters using `PARAM_ALPHA` rather than permissive types, enforce `require_sesskey()` for any state-changing actions, and design database lookup APIs to demand both the object ID and the container context ID (e.g., `courseid` or `userid`).

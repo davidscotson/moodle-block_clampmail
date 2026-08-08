@@ -6,5 +6,10 @@
     },
     "extra": {
         "installer-name": "clampmail"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true
+        }
     }
 }

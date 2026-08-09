@@ -78,13 +78,22 @@ $PAGE->set_pagelayout('standard');
 
 $dbtable = 'block_clampmail_' . $type;
 
+// Validate target record to prevent Insecure Direct Object Reference (IDOR).
+if (isset($action) && in_array($action, $validactions)) {
+    $DB->get_record($dbtable, [
+        'id' => $typeid,
+        'courseid' => $courseid,
+        'userid' => $userid
+    ], '*', MUST_EXIST);
+}
+
 $params = ['userid' => $userid, 'courseid' => $courseid];
 $count = $DB->count_records($dbtable, $params);
 
 switch ($action) {
     case "confirm":
         require_sesskey();
-        if (block_clampmail\email::cleanup($dbtable, $coursecontext->id, $typeid)) {
+        if (block_clampmail\email::cleanup($dbtable, $coursecontext->id, $typeid, $courseid, $userid)) {
             $url = new moodle_url('/blocks/clampmail/emaillog.php', [
                 'courseid' => $courseid,
                 'type' => $type,
@@ -96,7 +105,7 @@ switch ($action) {
         break;
     case "delete":
         require_sesskey();
-        $html = block_clampmail\email::delete_dialog($courseid, $type, $typeid);
+        $html = block_clampmail\email::delete_dialog($courseid, $type, $typeid, $userid);
         break;
     default:
         $html = block_clampmail\email::list_entries($courseid, $type, $page, $perpage, $userid, $count, $candelete);

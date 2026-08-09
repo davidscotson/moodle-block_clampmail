@@ -40,7 +40,7 @@ class email {
      * @param int $itemid the id for the email
      * @return boolean
      */
-    public static function cleanup($table, $contextid, $itemid) {
+    public static function cleanup($table, $contextid, $itemid, $courseid = null, $userid = null) {
         global $DB;
 
         // Clean up the files associated with this email
@@ -65,7 +65,15 @@ class email {
             $itemid
         );
 
-        return $DB->delete_records($table, ['id' => $itemid]);
+        $select = ['id' => $itemid];
+        if ($courseid !== null) {
+            $select['courseid'] = $courseid;
+        }
+        if ($userid !== null) {
+            $select['userid'] = $userid;
+        }
+
+        return $DB->delete_records($table, $select);
     }
 
     /**
@@ -223,17 +231,17 @@ class email {
      * @param int $typeid the id of the email or draft
      * @return string
      */
-    public static function delete_dialog($courseid, $type, $typeid) {
+    public static function delete_dialog($courseid, $type, $typeid, $userid = null) {
         global $DB, $OUTPUT;
 
-        $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid]);
-
-        if (empty($email)) {
-            print_error('not_valid_typeid', 'block_clampmail', '', $typeid);
+        $select = ['id' => $typeid, 'courseid' => $courseid];
+        if ($userid !== null) {
+            $select['userid'] = $userid;
         }
+        $email = $DB->get_record('block_clampmail_' . $type, $select, '*', MUST_EXIST);
 
         $params = ['courseid' => $courseid, 'type' => $type];
-        $yesparams = $params + ['typeid' => $typeid, 'action' => 'confirm'];
+        $yesparams = $params + ['typeid' => $typeid, 'action' => 'confirm', 'sesskey' => sesskey()];
 
         $optionyes = new \moodle_url('/blocks/clampmail/emaillog.php', $yesparams);
         $optionno = new \moodle_url('/blocks/clampmail/emaillog.php', $params);

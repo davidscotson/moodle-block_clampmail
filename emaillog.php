@@ -84,6 +84,8 @@ $count = $DB->count_records($dbtable, $params);
 switch ($action) {
     case "confirm":
         require_sesskey();
+        // IDOR Protection: verify that the email log/draft record exists and matches both the active $userid and $courseid context.
+        $email = $DB->get_record($dbtable, ['id' => $typeid, 'userid' => $userid, 'courseid' => $courseid], '*', MUST_EXIST);
         if (block_clampmail\email::cleanup($dbtable, $coursecontext->id, $typeid)) {
             $url = new moodle_url('/blocks/clampmail/emaillog.php', [
                 'courseid' => $courseid,
@@ -96,6 +98,8 @@ switch ($action) {
         break;
     case "delete":
         require_sesskey();
+        // IDOR Protection: verify that the email log/draft record exists and matches both the active $userid and $courseid context.
+        $email = $DB->get_record($dbtable, ['id' => $typeid, 'userid' => $userid, 'courseid' => $courseid], '*', MUST_EXIST);
         $html = block_clampmail\email::delete_dialog($courseid, $type, $typeid);
         break;
     default:

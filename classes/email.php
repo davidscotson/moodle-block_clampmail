@@ -233,7 +233,7 @@ class email {
         }
 
         $params = ['courseid' => $courseid, 'type' => $type];
-        $yesparams = $params + ['typeid' => $typeid, 'action' => 'confirm'];
+        $yesparams = $params + ['typeid' => $typeid, 'action' => 'confirm', 'sesskey' => sesskey()];
 
         $optionyes = new \moodle_url('/blocks/clampmail/emaillog.php', $yesparams);
         $optionno = new \moodle_url('/blocks/clampmail/emaillog.php', $params);

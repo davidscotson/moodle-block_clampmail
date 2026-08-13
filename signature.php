@@ -53,6 +53,9 @@ if ($confirm) {
 
 // Get all the signatures.
 $signatures = block_clampmail\signature::get_signatures($USER->id);
+if (!empty($signatureid) && !isset($signatures[$signatureid])) {
+    throw new moodle_exception('nopermission');
+}
 $signatureoptions = [0 => get_string('newsignature', 'block_clampmail')];
 foreach ($signatures as $sigid => $sig) {
     $signatureoptions[$sigid] = $sig->title;
@@ -133,6 +136,10 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            // IDOR Protection: verify that the signature actually belongs to the user.
+            if (!isset($signatures[$fromform->id])) {
+                throw new moodle_exception('nopermission');
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 
@@ -163,6 +170,7 @@ if (!empty($delete) && !empty($fromform->id)) {
             'id' => $signature->id,
             'courseid' => $courseid,
             'confirm' => 1,
+            'sesskey' => sesskey(),
         ]),
         new moodle_url('signature.php', [
             'id' => $signature->id,

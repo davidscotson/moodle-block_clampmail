@@ -125,7 +125,14 @@ if ($groupmode == SEPARATEGROUPS && !has_capability('block/clampmail:cansendtoal
 }
 
 if (!empty($type)) {
-    $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid]);
+    $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid], '*', MUST_EXIST);
+    if ($email->courseid != $courseid) {
+        throw new moodle_exception('invalidcourseid', 'error');
+    }
+    $canimpersonate = has_capability('block/clampmail:canimpersonate', $context);
+    if (!$canimpersonate && $email->userid != $USER->id) {
+        throw new moodle_exception('nopermission', 'error');
+    }
     $email->messageformat = $email->format;
 } else {
     $email = new stdClass();

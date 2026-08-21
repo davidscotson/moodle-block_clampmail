@@ -126,6 +126,10 @@ if ($groupmode == SEPARATEGROUPS && !has_capability('block/clampmail:cansendtoal
 
 if (!empty($type)) {
     $email = $DB->get_record('block_clampmail_' . $type, ['id' => $typeid]);
+    $canimpersonate = has_capability('block/clampmail:canimpersonate', $context);
+    if (!$email || $email->courseid != $courseid || (!$canimpersonate && $email->userid != $USER->id)) {
+        print_error('not_valid_typeid', 'block_clampmail', '', $typeid);
+    }
     $email->messageformat = $email->format;
 } else {
     $email = new stdClass();

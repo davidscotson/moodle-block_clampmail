@@ -95,10 +95,10 @@ class alternate {
      * @param int $id the alternate email id
      * @return array
      */
-    public static function get_one($id) {
+    public static function get_one($courseid, $id) {
         global $DB;
 
-        $params = ['id' => $id];
+        $params = ['id' => $id, 'courseid' => $courseid];
         return $DB->get_record('block_clampmail_alternate', $params, '*', MUST_EXIST);
     }
 
@@ -112,10 +112,12 @@ class alternate {
     public static function delete($course, $id) {
         global $OUTPUT;
 
-        $email = self::get_one($id);
+        $email = self::get_one($course->id, $id);
 
         $confirmurl = self::base_url($course->id, [
-            'id' => $email->id, 'action' => self::CONFIRMED,
+            'id' => $email->id,
+            'action' => self::CONFIRMED,
+            'sesskey' => sesskey(),
         ]);
 
         $cancelurl = self::base_url($course->id);
@@ -132,7 +134,7 @@ class alternate {
     public static function confirmed($course, $id) {
         global $DB;
 
-        $DB->delete_records('block_clampmail_alternate', ['id' => $id]);
+        $DB->delete_records('block_clampmail_alternate', ['id' => $id, 'courseid' => $course->id]);
 
         return redirect(self::base_url($course->id, ['flash' => 1]));
     }
@@ -147,7 +149,7 @@ class alternate {
     public static function verify($course, $id) {
         global $DB, $OUTPUT;
 
-        $entry = self::get_one($id);
+        $entry = self::get_one($course->id, $id);
 
         $value = optional_param('key', null, PARAM_TEXT);
         $userid = optional_param('activator', null, PARAM_INT);
@@ -170,6 +172,7 @@ class alternate {
         if (empty($value) || !$DB->get_record('user_private_key', $params)) {
             $reactivate = self::base_url($course->id, [
                 'id' => $id, 'action' => self::INFORMATION,
+                'sesskey' => sesskey(),
             ]);
 
             $html = $OUTPUT->notification(get_string('alternate_invalid', 'block_clampmail', $entry));
@@ -203,7 +206,7 @@ class alternate {
     public static function inform($course, $id) {
         global $OUTPUT, $USER;
 
-        $entry = self::get_one($id);
+        $entry = self::get_one($course->id, $id);
 
         // No restriction.
         // Valid forever.
@@ -286,12 +289,11 @@ class alternate {
                 $data->id = $older->id;
                 $data->valid = $older->valid;
             } else if (!empty($data->id)) {
-                // Changed address?
+                // Verify record belongs to this course before update.
+                $older = self::get_one($course->id, $data->id);
+
                 if ($data->valid) {
-                    $older = self::get_one($id);
-
                     $valid = $older->address != $data->address ? 0 : 1;
-
                     $data->valid = $valid;
                 }
 
@@ -303,13 +305,16 @@ class alternate {
 
             $action = $data->valid ? self::VERIFY : self::INFORMATION;
 
-            redirect(self::base_url($course->id, [
-                'action' => $action, 'id' => $data->id,
-            ]));
+            $redirectparams = ['action' => $action, 'id' => $data->id];
+            if ($action === self::INFORMATION) {
+                $redirectparams['sesskey'] = sesskey();
+            }
+
+            redirect(self::base_url($course->id, $redirectparams));
         }
 
         if ($id) {
-            $form->set_data(self::get_one($id));
+            $form->set_data(self::get_one($course->id, $id));
         }
 
         return $form->render();

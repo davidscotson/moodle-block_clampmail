@@ -133,6 +133,9 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            if (!array_key_exists($fromform->id, $signatures)) {
+                print_error('not_valid_typeid', 'block_clampmail', '', $fromform->id);
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 

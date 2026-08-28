@@ -84,12 +84,20 @@ $PAGE->set_pagelayout('standard');
 $PAGE->requires->jquery();
 $PAGE->requires->js('/blocks/clampmail/js/selection.js');
 
-// Build role arrays.
+// Build role arrays safely using parameterized queries.
 $courseroles = get_roles_used_in_context($context);
-$filterroles = $DB->get_records_select(
-    'role',
-    sprintf('id IN (%s)', $config['roleselection'])
-);
+if (!empty($config['roleselection'])) {
+    $rawroles = is_array($config['roleselection']) ? $config['roleselection'] : explode(',', $config['roleselection']);
+    $roleids = array_filter($rawroles, 'is_numeric');
+    if (!empty($roleids)) {
+        list($insql, $inparams) = $DB->get_in_or_equal($roleids);
+        $filterroles = $DB->get_records_select('role', "id $insql", $inparams);
+    } else {
+        $filterroles = [];
+    }
+} else {
+    $filterroles = [];
+}
 $roles = block_clampmail\email::filter_roles($courseroles, $filterroles);
 
 // Add role names.

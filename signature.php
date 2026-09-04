@@ -67,8 +67,10 @@ foreach ($signatures as $sigid => $sig) {
 if (empty($signatureid)) {
     $signature = new stdClass();
     $signature->signature = '';
-} else {
+} else if (isset($signatures[$signatureid])) {
     $signature = $signatures[$signatureid];
+} else {
+    print_error('not_valid_user', 'block_clampmail');
 }
 $signature->signatureformat = $USER->mailformat;
 $signature = file_prepare_standard_editor(
@@ -132,8 +134,10 @@ if ($mform->is_cancelled()) {
         // Update database.
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
-        } else {
+        } else if (isset($signatures[$fromform->id])) {
             $DB->update_record('block_clampmail_signatures', $fromform);
+        } else {
+            print_error('not_valid_user', 'block_clampmail');
         }
 
         // Return to view signature; this also reloads the signatures.
@@ -163,6 +167,7 @@ if (!empty($delete) && !empty($fromform->id)) {
             'id' => $signature->id,
             'courseid' => $courseid,
             'confirm' => 1,
+            'sesskey' => sesskey(),
         ]),
         new moodle_url('signature.php', [
             'id' => $signature->id,

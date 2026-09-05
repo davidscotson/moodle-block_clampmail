@@ -68,6 +68,9 @@ if (empty($signatureid)) {
     $signature = new stdClass();
     $signature->signature = '';
 } else {
+    if (!array_key_exists($signatureid, $signatures)) {
+        print_error('not_valid_typeid', 'block_clampmail', '', $signatureid);
+    }
     $signature = $signatures[$signatureid];
 }
 $signature->signatureformat = $USER->mailformat;
@@ -133,6 +136,9 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            if (!array_key_exists($fromform->id, $signatures)) {
+                print_error('not_valid_typeid', 'block_clampmail', '', $fromform->id);
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 
@@ -163,6 +169,7 @@ if (!empty($delete) && !empty($fromform->id)) {
             'id' => $signature->id,
             'courseid' => $courseid,
             'confirm' => 1,
+            'sesskey' => sesskey(),
         ]),
         new moodle_url('signature.php', [
             'id' => $signature->id,

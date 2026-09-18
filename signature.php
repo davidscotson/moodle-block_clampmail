@@ -63,8 +63,9 @@ foreach ($signatures as $sigid => $sig) {
     }
 }
 
-// Prepare signature for editor.
-if (empty($signatureid)) {
+// Prepare signature for editor. Verify ownership to prevent IDOR vulnerabilities.
+if (empty($signatureid) || !isset($signatures[$signatureid])) {
+    $signatureid = 0;
     $signature = new stdClass();
     $signature->signature = '';
 } else {
@@ -129,10 +130,10 @@ if ($mform->is_cancelled()) {
             }
         }
 
-        // Update database.
+        // Update database (verify record ownership before updating to prevent IDOR).
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
-        } else {
+        } else if (isset($signatures[$fromform->id])) {
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 
@@ -163,6 +164,7 @@ if (!empty($delete) && !empty($fromform->id)) {
             'id' => $signature->id,
             'courseid' => $courseid,
             'confirm' => 1,
+            'sesskey' => sesskey(),
         ]),
         new moodle_url('signature.php', [
             'id' => $signature->id,

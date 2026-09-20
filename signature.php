@@ -68,6 +68,9 @@ if (empty($signatureid)) {
     $signature = new stdClass();
     $signature->signature = '';
 } else {
+    if (!isset($signatures[$signatureid])) {
+        print_error('invalidid', 'error');
+    }
     $signature = $signatures[$signatureid];
 }
 $signature->signatureformat = $USER->mailformat;
@@ -133,6 +136,9 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            if (!isset($signatures[$fromform->id])) {
+                print_error('invalidid', 'error');
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 

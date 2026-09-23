@@ -46,6 +46,7 @@ class config_form extends \moodleform {
             new \moodle_url('/blocks/clampmail/config.php', [
                 'courseid' => $this->_customdata['courseid'],
                 'reset' => 1,
+                'sesskey' => sesskey(),
             ]),
             get_string('reset', 'block_clampmail')
         );

@@ -86,10 +86,13 @@ $PAGE->requires->js('/blocks/clampmail/js/selection.js');
 
 // Build role arrays.
 $courseroles = get_roles_used_in_context($context);
-$filterroles = $DB->get_records_select(
-    'role',
-    sprintf('id IN (%s)', $config['roleselection'])
-);
+$roleselectionids = array_filter(explode(',', $config['roleselection']), 'is_numeric');
+if (!empty($roleselectionids)) {
+    list($insql, $inparams) = $DB->get_in_or_equal($roleselectionids);
+    $filterroles = $DB->get_records_select('role', "id $insql", $inparams);
+} else {
+    $filterroles = [];
+}
 $roles = block_clampmail\email::filter_roles($courseroles, $filterroles);
 
 // Add role names.

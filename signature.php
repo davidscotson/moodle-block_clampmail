@@ -68,6 +68,9 @@ if (empty($signatureid)) {
     $signature = new stdClass();
     $signature->signature = '';
 } else {
+    if (!isset($signatures[$signatureid])) {
+        throw new \moodle_exception('invalidid', 'block_clampmail');
+    }
     $signature = $signatures[$signatureid];
 }
 $signature->signatureformat = $USER->mailformat;
@@ -109,6 +112,9 @@ if ($mform->is_cancelled()) {
     redirect(new moodle_url('/blocks/clampmail/email.php', ['courseid' => $courseid]));
 } else if ($fromform = $mform->get_data()) {
     if (!empty($fromform->delete)) {
+        if (!empty($fromform->id) && !isset($signatures[$fromform->id])) {
+            throw new \moodle_exception('invalidid', 'block_clampmail');
+        }
         $delete = true;
     } else {
         $fromform->signature = $fromform->signature_editor['text'];
@@ -133,6 +139,9 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            if (!isset($signatures[$fromform->id])) {
+                throw new \moodle_exception('invalidid', 'block_clampmail');
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 
@@ -163,6 +172,7 @@ if (!empty($delete) && !empty($fromform->id)) {
             'id' => $signature->id,
             'courseid' => $courseid,
             'confirm' => 1,
+            'sesskey' => sesskey(),
         ]),
         new moodle_url('signature.php', [
             'id' => $signature->id,

@@ -53,6 +53,10 @@ if ($confirm) {
 
 // Get all the signatures.
 $signatures = block_clampmail\signature::get_signatures($USER->id);
+if (!empty($signatureid) && !isset($signatures[$signatureid])) {
+    print_error('not_valid', 'block_clampmail');
+}
+
 $signatureoptions = [0 => get_string('newsignature', 'block_clampmail')];
 foreach ($signatures as $sigid => $sig) {
     $signatureoptions[$sigid] = $sig->title;
@@ -133,6 +137,9 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            if (!isset($signatures[$fromform->id])) {
+                print_error('not_valid', 'block_clampmail');
+            }
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 

@@ -84,10 +84,11 @@ $count = $DB->count_records($dbtable, $params);
 switch ($action) {
     case "confirm":
         require_sesskey();
-        if (block_clampmail\email::cleanup($dbtable, $coursecontext->id, $typeid)) {
+        if (block_clampmail\email::cleanup($dbtable, $coursecontext->id, $typeid, $courseid, $userid)) {
             $url = new moodle_url('/blocks/clampmail/emaillog.php', [
                 'courseid' => $courseid,
                 'type' => $type,
+                'userid' => $userid,
             ]);
             redirect($url);
         } else {
@@ -96,7 +97,7 @@ switch ($action) {
         break;
     case "delete":
         require_sesskey();
-        $html = block_clampmail\email::delete_dialog($courseid, $type, $typeid);
+        $html = block_clampmail\email::delete_dialog($courseid, $type, $typeid, $userid);
         break;
     default:
         $html = block_clampmail\email::list_entries($courseid, $type, $page, $perpage, $userid, $count, $candelete);

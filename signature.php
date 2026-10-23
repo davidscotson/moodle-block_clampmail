@@ -133,6 +133,8 @@ if ($mform->is_cancelled()) {
         if (empty($fromform->id)) {
             $fromform->id = $DB->insert_record('block_clampmail_signatures', $fromform);
         } else {
+            // Verify signature exists and belongs to current user to prevent IDOR vulnerabilities.
+            $DB->get_record('block_clampmail_signatures', ['id' => $fromform->id, 'userid' => $USER->id], '*', MUST_EXIST);
             $DB->update_record('block_clampmail_signatures', $fromform);
         }
 

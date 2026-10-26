@@ -58,8 +58,13 @@ class groups {
                     $groups = $allgroups;
                 } else {
                     $mygroups = groups_get_user_groups($courseid);
-                    $gids = implode(',', array_values($mygroups['0']));
-                    $groups = empty($gids) ? [] : $DB->get_records_select('groups', 'id IN (' . $gids . ')');
+                    $groupids = !empty($mygroups['0']) ? array_values($mygroups['0']) : [];
+                    if (!empty($groupids)) {
+                        list($insql, $inparams) = $DB->get_in_or_equal($groupids);
+                        $groups = $DB->get_records_select('groups', 'id ' . $insql, $inparams);
+                    } else {
+                        $groups = [];
+                    }
                 }
                 break;
         }

@@ -58,8 +58,14 @@ class groups {
                     $groups = $allgroups;
                 } else {
                     $mygroups = groups_get_user_groups($courseid);
-                    $gids = implode(',', array_values($mygroups['0']));
-                    $groups = empty($gids) ? [] : $DB->get_records_select('groups', 'id IN (' . $gids . ')');
+                    $groupids = !empty($mygroups['0']) ? array_filter(array_values($mygroups['0']), 'is_numeric') : [];
+                    if (empty($groupids)) {
+                        $groups = [];
+                    } else {
+                        // Use parameterized SQL query to avoid SQL injection risks.
+                        list($insql, $inparams) = $DB->get_in_or_equal($groupids);
+                        $groups = $DB->get_records_select('groups', "id $insql", $inparams);
+                    }
                 }
                 break;
         }

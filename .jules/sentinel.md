@@ -1,0 +1,4 @@
+## 2026-04-14 - SQL Injection in Group Selection Query
+**Vulnerability:** In `classes/groups.php`, `groups::get_groups` used `implode(',', array_values($mygroups['0']))` directly concatenated into an SQL string inside `$DB->get_records_select('groups', 'id IN (' . $gids . ')')`, posing a potential SQL injection vulnerability if group IDs contain unexpected values.
+**Learning:** In Moodle database operations, raw SQL fragment concatenation in `get_records_select` bypasses parameter binding, creating SQL injection vulnerabilities even when working with internal helper arrays.
+**Prevention:** Always use Moodle's `$DB->get_in_or_equal($ids)` along with type filtering (such as `array_filter(..., 'is_numeric')`) to generate parameter placeholders and pass parameters to `$DB->get_records_select`.

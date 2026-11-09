@@ -1,0 +1,5 @@
+## 2026-03-31 - SQL Injection Prevention in Group Selection
+
+**Vulnerability:** In `classes/groups.php` within `block_clampmail\groups::get_groups`, group identifiers obtained from `groups_get_user_groups($courseid)` were concatenated into a raw comma-delimited string (`$gids = implode(',', array_values($mygroups['0']))`) and interpolated directly into an SQL WHERE clause (`$DB->get_records_select('groups', 'id IN (' . $gids . ')')`).
+**Learning:** Legacy Moodle plugin code frequently constructs SQL `IN (...)` conditions using string concatenation or `implode()`, assuming group or role arrays contain safe integers. If inputs or mocked structures contain unexpected or malicious data, direct concatenation bypasses query parameterization.
+**Prevention:** In Moodle, dynamic `IN (...)` SQL clauses should always sanitize values (e.g. using `array_filter($ids, 'is_numeric')`) and use Moodle's built-in `$DB->get_in_or_equal($ids)` helper to generate safe parameterized placeholders and bind parameters.
